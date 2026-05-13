@@ -30,7 +30,7 @@ export default function ApiKeysPage() {
       headers: { 'Authorization': `Bearer ${token}` },
     });
     if (res.ok) {
-      const data = await res.json();
+      const data = await res.json() as { keys: ApiKey[] };
       setKeys(data.keys);
     }
     setLoading(false);
@@ -47,7 +47,7 @@ export default function ApiKeysPage() {
     });
 
     if (res.ok) {
-      const data = await res.json();
+      const data = await res.json() as { key: string };
       setNewKey(data.key);
       setKeyName('');
       fetchKeys();

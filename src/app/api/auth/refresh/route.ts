@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db';
-import { users } from '../../../drizzle/schema';
+import { users } from '@/drizzle/schema';
 import { verifyJWT, signJWT } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 
@@ -8,7 +8,8 @@ export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
   try {
-    const { refreshToken } = await request.json();
+    const body = await request.json() as { refreshToken?: string };
+    const { refreshToken } = body;
     if (!refreshToken) {
       return NextResponse.json({ error: 'Refresh token required' }, { status: 400 });
     }

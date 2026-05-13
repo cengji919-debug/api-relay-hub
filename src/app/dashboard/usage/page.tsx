@@ -33,7 +33,7 @@ export default function UsagePage() {
     fetch('/api/usage', {
       headers: { 'Authorization': `Bearer ${token}` },
     })
-      .then(r => r.json())
+      .then(r => r.json() as Promise<{ logs?: UsageLog[]; summary?: UsageSummary }>)
       .then(data => {
         setLogs(data.logs || []);
         setSummary(data.summary || null);

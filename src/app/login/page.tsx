@@ -23,16 +23,20 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const data = await res.json() as { error?: string; accessToken?: string; refreshToken?: string; user?: unknown };
       if (!res.ok) {
         setError(data.error || 'Login failed');
         return;
       }
 
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      router.push('/dashboard');
+      if (data.accessToken && data.refreshToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        router.push('/dashboard');
+      } else {
+        setError('Login failed');
+      }
     } catch {
       setError('Network error. Please try again.');
     } finally {

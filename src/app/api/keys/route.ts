@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db';
-import { apiKeys } from '../../../drizzle/schema';
+import { apiKeys } from '@/drizzle/schema';
 import { createApiKeySchema } from '@/lib/validations';
 import { generateApiKey, verifyJWT } from '@/lib/auth';
 import { eq, and } from 'drizzle-orm';

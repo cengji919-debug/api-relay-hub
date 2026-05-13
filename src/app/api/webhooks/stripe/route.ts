@@ -1,34 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db';
-import { payments, tokenBalances, tokenTransactions } from '../../../drizzle/schema';
+import { payments, tokenBalances, tokenTransactions } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 
 export const runtime = 'edge';
+
+async function verifyStripeWebhook(payload: string, sigHeader: string, secret: string): Promise<boolean> {
+  const parts = sigHeader.split(',');
+  let timestamp = 0;
+  let signature = '';
+
+  for (const part of parts) {
+    if (part.startsWith('t=')) {
+      timestamp = parseInt(part.substring(2));
+    } else if (part.startsWith('v1=')) {
+      signature = part.substring(3);
+    }
+  }
+
+  if (!timestamp || !signature) return false;
+
+  const signedPayload = `${timestamp}.${payload}`;
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const payloadData = encoder.encode(signedPayload);
+
+  const key = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const mac = await crypto.subtle.sign('HMAC', key, payloadData);
+  const expected = Array.from(new Uint8Array(mac)).map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  return expected === signature;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
     const signature = request.headers.get('stripe-signature') || '';
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
-    const Stripe = require('stripe');
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+    if (!webhookSecret) {
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
+    }
 
-    let event;
-    try {
-      event = stripe.webhooks.constructEvent(
-        body,
-        signature,
-        process.env.STRIPE_WEBHOOK_SECRET || '',
-      );
-    } catch {
+    const isValid = await verifyStripeWebhook(body, signature, webhookSecret);
+    if (!isValid) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
+
+    const event = JSON.parse(body);
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       const userId = session.metadata.userId;
       const tokens = parseInt(session.metadata.tokens);
-      const amount = session.amount_total / 100;
+      const amount = (session.amount_total || 0) / 100;
 
       const db = getDB(process.env.DB as unknown as D1Database);
 
@@ -37,7 +62,7 @@ export async function POST(request: NextRequest) {
         provider: 'STRIPE',
         providerPaymentId: session.id,
         amount,
-        currency: session.currency.toUpperCase(),
+        currency: (session.currency || 'usd').toUpperCase(),
         tokens,
         status: 'COMPLETED',
         metadata: JSON.stringify(session),

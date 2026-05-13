@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db';
-import { apiKeys, users, tokenBalances, apiUsageLogs, apiProviders } from '../../../../drizzle/schema';
+import { apiKeys, users, tokenBalances, apiUsageLogs, apiProviders } from '@/drizzle/schema';
 import { chatCompletionSchema } from '@/lib/validations';
 import { PROVIDER_MODELS } from '@/lib/constants';
 import { eq } from 'drizzle-orm';
@@ -106,8 +106,10 @@ export async function POST(request: NextRequest) {
     const apiKeyValue = authHeader.slice(7);
     const db = getDB(process.env.DB as unknown as D1Database);
 
-    const crypto = require('crypto');
-    const keyHash = crypto.createHash('sha256').update(apiKeyValue).digest('hex');
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(apiKeyValue);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+    const keyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
     const keyRecord = await db.select({
       id: apiKeys.id,
@@ -143,7 +145,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Provider not configured' }, { status: 503 });
     }
 
-    const balance = await db.select({ balance: tokenBalances.balance })
+    const balance = await db.select({ balance: tokenBalances.balance, lifetimeUsage: tokenBalances.lifetimeUsage })
       .from(tokenBalances)
       .where(eq(tokenBalances.userId, keyRecord.userId))
       .get();

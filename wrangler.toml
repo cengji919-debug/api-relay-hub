@@ -7,20 +7,13 @@ pages_build_output_dir = ".vercel/output/static"
 [[d1_databases]]
 binding = "DB"
 database_name = "api-relay-db"
-database_id = ""
-
-[[kv_namespaces]]
-binding = "CACHE"
-id = ""
-preview_id = ""
+database_id = "your-database-id"
 
 [vars]
 ENVIRONMENT = "production"
-JWT_SECRET = ""
-JWT_REFRESH_SECRET = ""
+JWT_SECRET = "change-this-to-a-random-secret-key"
+JWT_REFRESH_SECRET = "change-this-to-another-random-secret-key"
 STRIPE_SECRET_KEY = ""
 STRIPE_WEBHOOK_SECRET = ""
-PAYPAL_CLIENT_ID = ""
-PAYPAL_CLIENT_SECRET = ""
 NEXT_PUBLIC_SITE_URL = "https://api-relay-hub.pages.dev"
 NEXT_PUBLIC_CLOUDFLARE = "true"

@@ -5,8 +5,4 @@ const nextConfig = {
   },
 };
 
-if (process.env.NEXT_PUBLIC_CLOUDFLARE === 'true') {
-  nextConfig.output = 'export';
-}
-
 module.exports = nextConfig;

@@ -29,7 +29,7 @@ export default function BillingPage() {
       headers: { 'Authorization': `Bearer ${token}` },
     });
     if (res.ok) {
-      const data = await res.json();
+      const data = await res.json() as { history: Payment[] };
       setPayments(data.history);
     }
     setLoading(false);
@@ -47,7 +47,7 @@ export default function BillingPage() {
         body: JSON.stringify({ packageId }),
       });
 
-      const data = await res.json();
+      const data = await res.json() as { url?: string };
       if (data.url) {
         window.location.href = data.url;
       }
@@ -60,9 +60,9 @@ export default function BillingPage() {
 
   const packages = [
     { id: 'starter', name: 'Starter', tokens: '400K', price: 5, bonus: 0 },
-    { id: 'basic', name: 'Basic', tokens: '1M', price: 10, bonus: '50K' },
-    { id: 'pro', name: 'Pro', tokens: '2.5M', price: 25, bonus: '200K', popular: true },
-    { id: 'enterprise', name: 'Enterprise', tokens: '5.5M', price: 50, bonus: '500K' },
+    { id: 'basic', name: 'Basic', tokens: '1M', price: 10, bonus: 50000 },
+    { id: 'pro', name: 'Pro', tokens: '2.5M', price: 25, bonus: 200000, popular: true },
+    { id: 'enterprise', name: 'Enterprise', tokens: '5.5M', price: 50, bonus: 500000 },
   ];
 
   return (

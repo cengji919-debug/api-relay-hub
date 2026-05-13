@@ -19,8 +19,8 @@ export default function DashboardPage() {
     if (!token) return;
 
     Promise.all([
-      fetch('/api/user/balance', { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
-      fetch('/api/usage', { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+      fetch('/api/user/balance', { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()) as Promise<{ balance: number }>,
+      fetch('/api/usage', { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()) as Promise<{ summary?: UsageSummary }>,
     ]).then(([balanceData, usageData]) => {
       setBalance(balanceData.balance || 0);
       setSummary(usageData.summary || null);

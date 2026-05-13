@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db';
-import { tokenBalances } from '../../../drizzle/schema';
+import { tokenBalances } from '@/drizzle/schema';
 import { verifyJWT } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 

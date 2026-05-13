@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json() as { balance: number };
         setBalance(data.balance);
       }
     } catch {}

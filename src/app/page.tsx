@@ -287,10 +287,10 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
             {[
               { name: 'Starter', tokens: '400K', price: 5, bonus: 0 },
-              { name: 'Basic', tokens: '1M', price: 10, bonus: '50K' },
-              { name: 'Pro', tokens: '2.5M', price: 25, bonus: '200K', popular: true },
-              { name: 'Enterprise', tokens: '5.5M', price: 50, bonus: '500K' },
-              { name: 'Custom', tokens: '12M', price: 100, bonus: '1M' },
+              { name: 'Basic', tokens: '1M', price: 10, bonus: 50000 },
+              { name: 'Pro', tokens: '2.5M', price: 25, bonus: 200000, popular: true },
+              { name: 'Enterprise', tokens: '5.5M', price: 50, bonus: 500000 },
+              { name: 'Custom', tokens: '12M', price: 100, bonus: 1000000 },
             ].map((pkg, i) => (
               <div
                 key={i}

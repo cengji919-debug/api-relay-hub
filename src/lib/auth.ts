@@ -19,25 +19,52 @@ export async function verifyJWT<T>(token: string, secret: string): Promise<T> {
   return payload as T;
 }
 
-export async function hashPassword(password: string): Promise<string> {
-  const { hash } = await import('bcryptjs');
-  return hash(password, 12);
+async function pbkdf2(password: string, salt: string, iterations: number): Promise<ArrayBuffer> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  );
+  return crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: new TextEncoder().encode(salt), iterations, hash: 'SHA-256' },
+    key,
+    256,
+  );
 }
 
-export async function comparePassword(password: string, hash: string): Promise<boolean> {
-  const { compare } = await import('bcryptjs');
-  return compare(password, hash);
+function arrayBufferToHex(buffer: ArrayBuffer | Uint8Array): string {
+  return Array.from(buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+export async function hashPassword(password: string): Promise<string> {
+  const salt = crypto.randomUUID();
+  const hash = await pbkdf2(password, salt, 100000);
+  return `${salt}:${arrayBufferToHex(hash)}`;
+}
+
+export async function comparePassword(password: string, storedHash: string): Promise<boolean> {
+  const [salt, hash] = storedHash.split(':');
+  const newHash = await pbkdf2(password, salt, 100000);
+  return arrayBufferToHex(newHash) === hash;
 }
 
 export function generateApiKey(): { key: string; preview: string; hash: string } {
-  const crypto = require('crypto');
-  const key = `sk-${crypto.randomBytes(32).toString('hex')}`;
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  const key = `sk-${arrayBufferToHex(bytes)}`;
   const preview = key.substring(0, 8);
-  const hash = crypto.createHash('sha256').update(key).digest('hex');
+  const hashBytes = new Uint8Array(32);
+  crypto.getRandomValues(hashBytes);
+  const hash = arrayBufferToHex(hashBytes);
   return { key, preview, hash };
 }
 
-export function generateTokenId(): string {
-  const crypto = require('crypto');
-  return crypto.randomUUID();
+export async function hashApiKey(key: string): Promise<string> {
+  const keyData = new TextEncoder().encode(key);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+  return arrayBufferToHex(hashBuffer);
 }

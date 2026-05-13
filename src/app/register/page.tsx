@@ -24,16 +24,20 @@ export default function RegisterPage() {
         body: JSON.stringify({ email, password, displayName: displayName || undefined }),
       });
 
-      const data = await res.json();
+      const data = await res.json() as { error?: string; accessToken?: string; refreshToken?: string; user?: unknown };
       if (!res.ok) {
         setError(data.error || 'Registration failed');
         return;
       }
 
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      router.push('/dashboard');
+      if (data.accessToken && data.refreshToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        router.push('/dashboard');
+      } else {
+        setError('Registration failed');
+      }
     } catch {
       setError('Network error. Please try again.');
     } finally {
