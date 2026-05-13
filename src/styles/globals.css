@@ -2,15 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --foreground: #111827;
-  --background: #ffffff;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --card: #ffffff;
-  --card-hover: #f9fafb;
+  --foreground: #e2e8f0;
+  --background: #0a0e27;
+  --background-secondary: #111837;
+  --muted: #94a3b8;
+  --border: #1e293b;
+  --card: #111837;
+  --card-hover: #1a2347;
+  --primary: #00f0ff;
+  --primary-glow: rgba(0, 240, 255, 0.3);
+  --secondary: #7c3aed;
+  --accent: #f472b6;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
 }
 
 * {
@@ -25,41 +33,129 @@ body {
   background: var(--background);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
+/* Sci-fi Typography */
+.font-orbitron {
+  font-family: 'Orbitron', sans-serif;
+}
+
+.font-mono-tech {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Sci-fi Gradients */
 .gradient-text {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #00f0ff 0%, #7c3aed 50%, #f472b6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #00f0ff 0%, #7c3aed 100%);
 }
 
-.gradient-border {
+.gradient-bg-accent {
+  background: linear-gradient(135deg, #7c3aed 0%, #f472b6 100%);
+}
+
+.gradient-bg-dark {
+  background: linear-gradient(135deg, #111837 0%, #1a2347 100%);
+}
+
+/* Neon Glow Effects */
+.neon-glow {
+  box-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow);
+}
+
+.neon-border {
+  border: 1px solid var(--primary);
+  box-shadow: 0 0 5px var(--primary-glow), inset 0 0 5px var(--primary-glow);
+}
+
+.neon-text {
+  color: var(--primary);
+  text-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--primary-glow);
+}
+
+/* Sci-fi Card Styles */
+.card-sci-fi {
+  background: linear-gradient(135deg, rgba(17, 24, 55, 0.8) 0%, rgba(26, 35, 71, 0.8) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.card-sci-fi:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px var(--primary-glow), inset 0 0 20px var(--primary-glow);
+  transform: translateY(-2px);
+}
+
+/* Sci-fi Button Styles */
+.btn-sci-fi {
+  background: linear-gradient(135deg, #00f0ff 0%, #7c3aed 100%);
+  color: #0a0e27;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
   position: relative;
+  overflow: hidden;
 }
 
-.gradient-border::before {
+.btn-sci-fi::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
 }
 
+.btn-sci-fi:hover::before {
+  left: 100%;
+}
+
+.btn-sci-fi:hover {
+  box-shadow: 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow);
+  transform: translateY(-2px);
+}
+
+.btn-sci-fi-outline {
+  background: transparent;
+  color: var(--primary);
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-sci-fi-outline:hover {
+  background: var(--primary-glow);
+  box-shadow: 0 0 15px var(--primary-glow);
+}
+
+/* Sci-fi Grid Background */
 .hero-grid {
   background-image:
-    radial-gradient(circle at 25% 25%, rgba(79, 70, 229, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(124, 58, 237, 0.05) 0%, transparent 50%);
+    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 25% 25%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(244, 114, 182, 0.1) 0%, transparent 50%);
+  background-size: 50px 50px, 50px 50px, 100% 100%, 100% 100%;
 }
 
+/* Sci-fi Animations */
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
@@ -67,6 +163,31 @@ body {
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px var(--primary-glow); }
+  50% { box-shadow: 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.animate-scan-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  animation: scan-line 3s linear infinite;
 }
 
 @keyframes fadeIn {
@@ -91,4 +212,69 @@ body {
 .animate-fade-in-delay-3 {
   animation: fadeIn 0.5s ease-out 0.3s forwards;
   opacity: 0;
+}
+
+@keyframes glitch {
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+}
+
+.animate-glitch:hover {
+  animation: glitch 0.3s ease-in-out;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00d4e0;
+}
+
+/* Input Styling */
+input, select, textarea {
+  background: var(--background-secondary) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 10px var(--primary-glow) !important;
+  outline: none !important;
+}
+
+/* Table Styling */
+table {
+  border-collapse: collapse;
+}
+
+th {
+  background: var(--background-secondary);
+  color: var(--primary);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+td {
+  border-bottom: 1px solid var(--border);
+}
+
+tr:hover td {
+  background: var(--card-hover);
 }

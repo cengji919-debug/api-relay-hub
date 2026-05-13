@@ -117,3 +117,22 @@ export const autoRechargeSettings = sqliteTable('auto_recharge_settings', {
   createdAt: text('created_at').default(sql`(datetime('now'))`).notNull(),
   updatedAt: text('updated_at').default(sql`(datetime('now'))`).notNull(),
 });
+
+export const referrals = sqliteTable('referrals', {
+  id: text('id').primaryKey().default(sql`(lower(hex(randomblob(16))))`),
+  referrerId: text('referrer_id').notNull().references(() => users.id),
+  referredUserId: text('referred_user_id').unique().notNull().references(() => users.id),
+  referralCode: text('referral_code').notNull(),
+  bonusTokens: integer('bonus_tokens').default(0).notNull(),
+  status: text('status').default('ACTIVE').notNull(),
+  createdAt: text('created_at').default(sql`(datetime('now'))`).notNull(),
+});
+
+export const modelMappings = sqliteTable('model_mappings', {
+  id: text('id').primaryKey().default(sql`(lower(hex(randomblob(16))))`),
+  userId: text('user_id').references(() => users.id),
+  sourceModel: text('source_model').notNull(),
+  targetModel: text('target_model').notNull(),
+  isActive: integer('is_active').default(1).notNull(),
+  createdAt: text('created_at').default(sql`(datetime('now'))`).notNull(),
+});

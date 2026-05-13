@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db';
-import { users, tokenBalances } from '@/drizzle/schema';
+import { users, tokenBalances, referrals } from '@/drizzle/schema';
 import { registerSchema } from '@/lib/validations';
 import { hashPassword, signJWT } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
+import { REFERRAL_BONUS } from '@/lib/constants';
 
 export const runtime = 'edge';
 
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, displayName } = validation.data;
+    const { email, password, displayName, referralCode } = validation.data;
     const db = getDB(process.env.DB as unknown as D1Database);
 
     const existingUser = await db.select().from(users).where(eq(users.email, email)).get();
@@ -39,6 +40,42 @@ export async function POST(request: NextRequest) {
       balance: 0,
       lifetimeUsage: 0,
     }).run();
+
+    // Handle referral
+    if (referralCode) {
+      const referrer = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, referralCode.replace('REF', '').toLowerCase()))
+        .get();
+
+      if (referrer) {
+        await db.insert(referrals).values({
+          referrerId: referrer.id,
+          referredUserId: newUser.id,
+          referralCode,
+          bonusTokens: REFERRAL_BONUS,
+        }).run();
+
+        // Add bonus tokens to referrer
+        const referrerBalance = await db
+          .select()
+          .from(tokenBalances)
+          .where(eq(tokenBalances.userId, referrer.id))
+          .get();
+
+        if (referrerBalance) {
+          await db
+            .update(tokenBalances)
+            .set({
+              balance: referrerBalance.balance + REFERRAL_BONUS,
+              updatedAt: new Date().toISOString(),
+            })
+            .where(eq(tokenBalances.userId, referrer.id))
+            .run();
+        }
+      }
+    }
 
     const accessToken = await signJWT(
       { sub: newUser.id, email: newUser.email, role: newUser.role },

@@ -12,12 +12,19 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('locale') as Locale;
     if (saved) setLocale(saved);
+    
+    // Get referral code from URL
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) setReferralCode(ref);
+    
     const handler = (e: Event) => setLocale((e as CustomEvent).detail);
     window.addEventListener('locale-change', handler);
     return () => window.removeEventListener('locale-change', handler);
@@ -34,7 +41,7 @@ export default function RegisterPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, displayName: displayName || undefined }),
+        body: JSON.stringify({ email, password, displayName: displayName || undefined, referralCode: referralCode || undefined }),
       });
 
       const data = await res.json() as { error?: string; accessToken?: string; refreshToken?: string; user?: unknown };
@@ -131,6 +138,12 @@ export default function RegisterPage() {
                 {loading ? tr('register', 'creating') : tr('register', 'createAccount')}
               </button>
             </form>
+
+            {referralCode && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-100 rounded-xl text-sm text-green-700 text-center">
+                Referral code applied: {referralCode}
+              </div>
+            )}
 
             <p className="mt-6 text-center text-sm text-gray-600">
               {tr('register', 'hasAccount')}{' '}
