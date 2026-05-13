@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { defaultLocale, type Locale, t } from '@/lib/i18n';
 
 interface UsageSummary {
   totalTokens: number;
@@ -10,9 +11,20 @@ interface UsageSummary {
 }
 
 export default function DashboardPage() {
+  const [locale, setLocale] = useState<Locale>('en');
   const [summary, setSummary] = useState<UsageSummary | null>(null);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('locale') as Locale;
+    if (saved) setLocale(saved);
+    const handler = (e: Event) => setLocale((e as CustomEvent).detail);
+    window.addEventListener('locale-change', handler);
+    return () => window.removeEventListener('locale-change', handler);
+  }, []);
+
+  const tr = useCallback((...keys: string[]) => t(locale, ...keys), [locale]);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -41,17 +53,17 @@ export default function DashboardPage() {
   }
 
   const stats = [
-    { label: 'Token Balance', value: balance.toLocaleString(), sub: `${(balance / 1000000).toFixed(2)}M`, color: 'bg-indigo-500' },
-    { label: 'Total API Calls', value: (summary?.totalCalls || 0).toLocaleString(), sub: 'all time', color: 'bg-emerald-500' },
-    { label: 'Tokens Used', value: (summary?.totalTokens || 0).toLocaleString(), sub: `${((summary?.totalCost || 0) / 1000000).toFixed(2)}M`, color: 'bg-violet-500' },
-    { label: 'Avg Response', value: `${(summary?.avgResponseTime || 0).toFixed(0)}ms`, sub: 'p95 latency', color: 'bg-amber-500' },
+    { label: tr('dashboard', 'balance'), value: balance.toLocaleString(), sub: `${(balance / 1000000).toFixed(2)}M`, color: 'bg-indigo-500' },
+    { label: tr('dashboard', 'apiKeys'), value: (summary?.totalCalls || 0).toLocaleString(), sub: 'all time', color: 'bg-emerald-500' },
+    { label: tr('dashboard', 'totalUsed'), value: (summary?.totalTokens || 0).toLocaleString(), sub: `${((summary?.totalCost || 0) / 1000000).toFixed(2)}M`, color: 'bg-violet-500' },
+    { label: tr('usage', 'avgResponse'), value: `${(summary?.avgResponseTime || 0).toFixed(0)}ms`, sub: 'p95 latency', color: 'bg-amber-500' },
   ];
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Overview of your account and API usage.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{tr('dashboard', 'title')}</h1>
+        <p className="text-gray-600 mt-1">{tr('dashboard', 'subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -67,9 +79,8 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Quick Actions */}
       <div className="bg-white rounded-xl border border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{tr('dashboard', 'quickActions')}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <a
             href="/dashboard/api-keys"
@@ -81,8 +92,8 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <div className="text-sm font-semibold text-gray-900">Create API Key</div>
-              <div className="text-xs text-gray-500">Generate a new API key</div>
+              <div className="text-sm font-semibold text-gray-900">{tr('dashboard', 'createKey')}</div>
+              <div className="text-xs text-gray-500">{tr('dashboard', 'apiKeys')}</div>
             </div>
           </a>
 
@@ -96,8 +107,8 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <div className="text-sm font-semibold text-gray-900">Buy Tokens</div>
-              <div className="text-xs text-gray-500">Add more tokens to your account</div>
+              <div className="text-sm font-semibold text-gray-900">{tr('dashboard', 'buyTokens')}</div>
+              <div className="text-xs text-gray-500">{tr('billing', 'purchaseTokens')}</div>
             </div>
           </a>
 
@@ -111,8 +122,8 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <div className="text-sm font-semibold text-gray-900">Documentation</div>
-              <div className="text-xs text-gray-500">View API reference</div>
+              <div className="text-sm font-semibold text-gray-900">{tr('dashboard', 'viewDocs')}</div>
+              <div className="text-xs text-gray-500">{tr('docs', 'subtitle')}</div>
             </div>
           </a>
         </div>

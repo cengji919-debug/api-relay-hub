@@ -1,18 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { defaultLocale, type Locale, t } from '@/lib/i18n';
 
 export default function StatusPage() {
+  const [locale, setLocale] = useState<Locale>('en');
   const [statuses, setStatuses] = useState([
     { name: 'API Gateway', status: 'operational' as const },
-    { name: 'ERNIE Bot (Baidu)', status: 'operational' as const },
-    { name: 'Tongyi Qianwen (Alibaba)', status: 'operational' as const },
-    { name: 'Spark Desk (iFlytek)', status: 'operational' as const },
-    { name: 'DeepSeek', status: 'operational' as const },
+    { name: 'SiliconFlow', status: 'operational' as const },
+    { name: 'Database', status: 'operational' as const },
     { name: 'Payment Processing', status: 'operational' as const },
   ]);
 
+  useEffect(() => {
+    const saved = localStorage.getItem('locale') as Locale;
+    if (saved) setLocale(saved);
+    const handler = (e: Event) => setLocale((e as CustomEvent).detail);
+    window.addEventListener('locale-change', handler);
+    return () => window.removeEventListener('locale-change', handler);
+  }, []);
+
+  const tr = useCallback((...keys: string[]) => t(locale, ...keys), [locale]);
+
   const uptime = '99.97%';
+
+  const statusLabels: Record<string, string> = {
+    operational: tr('status', 'operational'),
+    degraded: tr('status', 'degraded'),
+    down: tr('status', 'outage'),
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -20,10 +36,10 @@ export default function StatusPage() {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 rounded-full text-sm text-green-700 font-medium mb-4">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            All Systems Operational
+            {tr('status', 'allOperational')}
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">System Status</h1>
-          <p className="text-gray-600">Current uptime: {uptime} over the last 30 days</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{tr('status', 'title')}</h1>
+          <p className="text-gray-600">{tr('status', 'uptimeDesc', 'last30Days').replace('{uptime}', uptime)}</p>
         </div>
 
         <div className="space-y-3">
@@ -35,16 +51,15 @@ export default function StatusPage() {
                 item.status === 'degraded' ? 'bg-amber-50 text-amber-700' :
                 'bg-red-50 text-red-700'
               }`}>
-                {item.status === 'operational' ? 'Operational' :
-                 item.status === 'degraded' ? 'Degraded' : 'Down'}
+                {statusLabels[item.status]}
               </span>
             </div>
           ))}
         </div>
 
         <div className="mt-12 p-6 bg-gray-50 rounded-xl">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Recent Incidents</h2>
-          <p className="text-sm text-gray-500">No recent incidents. All services are running smoothly.</p>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">{tr('status', 'recentIncidents')}</h2>
+          <p className="text-sm text-gray-500">{tr('status', 'noIncidents')}</p>
         </div>
       </div>
     </div>

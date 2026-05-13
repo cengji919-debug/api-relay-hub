@@ -9,18 +9,19 @@ export const TOKEN_PACKAGES: TokenPackage[] = [
 ];
 
 export const PROVIDER_MODELS = {
-  'ernie-4.0': { provider: 'ernie', displayName: 'ERNIE 4.0', inputPrice: 0.12, outputPrice: 0.12 },
-  'ernie-3.5': { provider: 'ernie', displayName: 'ERNIE 3.5', inputPrice: 0.04, outputPrice: 0.04 },
-  'qwen-max': { provider: 'tongyi', displayName: 'Qwen Max', inputPrice: 0.04, outputPrice: 0.12 },
-  'qwen-plus': { provider: 'tongyi', displayName: 'Qwen Plus', inputPrice: 0.004, outputPrice: 0.012 },
-  'qwen-turbo': { provider: 'tongyi', displayName: 'Qwen Turbo', inputPrice: 0.002, outputPrice: 0.006 },
-  'spark-4.0': { provider: 'spark', displayName: 'Spark 4.0', inputPrice: 0.1, outputPrice: 0.1 },
-  'spark-3.0': { provider: 'spark', displayName: 'Spark 3.0', inputPrice: 0.03, outputPrice: 0.03 },
-  'deepseek-chat': { provider: 'deepseek', displayName: 'DeepSeek Chat', inputPrice: 0.001, outputPrice: 0.002 },
-  'deepseek-reasoner': { provider: 'deepseek', displayName: 'DeepSeek Reasoner', inputPrice: 0.004, outputPrice: 0.008 },
+  'Qwen/Qwen2.5-72B-Instruct': { provider: 'siliconflow', displayName: 'Qwen 2.5 72B', inputPrice: 0.004, outputPrice: 0.004 },
+  'Qwen/Qwen2.5-32B-Instruct': { provider: 'siliconflow', displayName: 'Qwen 2.5 32B', inputPrice: 0.001, outputPrice: 0.001 },
+  'Qwen/Qwen2.5-14B-Instruct': { provider: 'siliconflow', displayName: 'Qwen 2.5 14B', inputPrice: 0.0008, outputPrice: 0.0008 },
+  'Qwen/Qwen2.5-7B-Instruct': { provider: 'siliconflow', displayName: 'Qwen 2.5 7B', inputPrice: 0.0005, outputPrice: 0.0005 },
+  'deepseek-ai/DeepSeek-V3': { provider: 'siliconflow', displayName: 'DeepSeek V3', inputPrice: 0.002, outputPrice: 0.002 },
+  'deepseek-ai/DeepSeek-R1': { provider: 'siliconflow', displayName: 'DeepSeek R1', inputPrice: 0.004, outputPrice: 0.004 },
+  'THUDM/glm-4-9b-chat': { provider: 'siliconflow', displayName: 'GLM-4 9B', inputPrice: 0.0005, outputPrice: 0.0005 },
+  'internlm/internlm2_5-20b-chat': { provider: 'siliconflow', displayName: 'InternLM 2.5 20B', inputPrice: 0.001, outputPrice: 0.001 },
+  '01-ai/Yi-1.5-34B-Chat': { provider: 'siliconflow', displayName: 'Yi 1.5 34B', inputPrice: 0.0015, outputPrice: 0.0015 },
+  'baichuan-inc/Baichuan2-13B-Chat': { provider: 'siliconflow', displayName: 'Baichuan 2 13B', inputPrice: 0.0008, outputPrice: 0.0008 },
 } as const;
 
-export const EXCHANGE_RATE = 7.2; // CNY to USD (updated hourly)
+export const EXCHANGE_RATE = 7.2;
 
 export const TARGET_MARGIN_MIN = 0.30;
 export const TARGET_MARGIN_MAX = 0.50;

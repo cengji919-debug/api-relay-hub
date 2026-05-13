@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { defaultLocale, type Locale, t } from '@/lib/i18n';
 
 interface Payment {
   id: string;
@@ -13,9 +14,20 @@ interface Payment {
 }
 
 export default function BillingPage() {
+  const [locale, setLocale] = useState<Locale>('en');
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('locale') as Locale;
+    if (saved) setLocale(saved);
+    const handler = (e: Event) => setLocale((e as CustomEvent).detail);
+    window.addEventListener('locale-change', handler);
+    return () => window.removeEventListener('locale-change', handler);
+  }, []);
+
+  const tr = useCallback((...keys: string[]) => t(locale, ...keys), [locale]);
 
   useEffect(() => {
     fetchHistory();
@@ -68,11 +80,10 @@ export default function BillingPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Billing</h1>
-        <p className="text-gray-600 mt-1">Purchase tokens and view payment history.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{tr('billing', 'title')}</h1>
+        <p className="text-gray-600 mt-1">{tr('billing', 'subtitle')}</p>
       </div>
 
-      {/* Token Packages */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {packages.map(pkg => (
           <div
@@ -82,15 +93,15 @@ export default function BillingPage() {
             } hover:shadow-lg transition-shadow`}
           >
             {pkg.popular && (
-              <div className="text-xs font-semibold text-indigo-700 mb-2">BEST VALUE</div>
+              <div className="text-xs font-semibold text-indigo-700 mb-2">{tr('home', 'pricing', 'popular')}</div>
             )}
             <h3 className="text-lg font-bold text-gray-900">{pkg.name}</h3>
             <div className="mt-3 mb-2">
               <span className="text-3xl font-bold text-gray-900">${pkg.price}</span>
             </div>
-            <p className="text-sm text-gray-600">{pkg.tokens} tokens</p>
+            <p className="text-sm text-gray-600">{pkg.tokens} {tr('billing', 'tokens').toLowerCase()}</p>
             {pkg.bonus > 0 && (
-              <p className="text-xs text-green-600 font-medium">+{pkg.bonus} bonus</p>
+              <p className="text-xs text-green-600 font-medium">+{pkg.bonus.toLocaleString()} {tr('home', 'pricing', 'bonus')}</p>
             )}
             <button
               onClick={() => handlePurchase(pkg.id)}
@@ -101,16 +112,15 @@ export default function BillingPage() {
                   : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
               } disabled:opacity-50`}
             >
-              {checkoutLoading === pkg.id ? 'Redirecting...' : 'Buy Now'}
+              {checkoutLoading === pkg.id ? 'Redirecting...' : tr('home', 'pricing', 'buyNow')}
             </button>
           </div>
         ))}
       </div>
 
-      {/* Payment History */}
       <div className="bg-white rounded-xl border border-gray-100">
         <div className="p-6 border-b border-gray-50">
-          <h2 className="text-lg font-semibold text-gray-900">Payment History</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{tr('billing', 'history')}</h2>
         </div>
 
         {loading ? (
@@ -124,18 +134,18 @@ export default function BillingPage() {
             <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
-            <p className="text-gray-500">No payment history yet.</p>
+            <p className="text-gray-500">{tr('billing', 'noHistory')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-50">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Provider</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Tokens</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{tr('billing', 'date')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{tr('billing', 'package')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{tr('billing', 'amount')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{tr('billing', 'tokens')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{tr('billing', 'status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -157,7 +167,8 @@ export default function BillingPage() {
                         payment.status === 'PENDING' ? 'bg-amber-50 text-amber-700' :
                         'bg-red-50 text-red-700'
                       }`}>
-                        {payment.status}
+                        {payment.status === 'COMPLETED' ? tr('billing', 'completed') : 
+                         payment.status === 'PENDING' ? tr('billing', 'pending') : payment.status}
                       </span>
                     </td>
                   </tr>

@@ -1,10 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { defaultLocale, type Locale, t } from '@/lib/i18n';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [locale, setLocale] = useState<Locale>(defaultLocale);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('locale') as Locale;
+    if (saved) setLocale(saved);
+
+    const handler = (e: Event) => {
+      setLocale((e as CustomEvent).detail);
+    };
+    window.addEventListener('locale-change', handler);
+    return () => window.removeEventListener('locale-change', handler);
+  }, []);
+
+  const tr = useCallback((...keys: string[]) => t(locale, ...keys), [locale]);
+
+  const models = [
+    { name: 'Qwen 2.5 72B', provider: 'Alibaba', desc: '通义千问最新模型，超强推理和生成能力', popular: true },
+    { name: 'Qwen 2.5 32B', provider: 'Alibaba', desc: '平衡性能和效率的通用模型', popular: false },
+    { name: 'DeepSeek V3', provider: 'DeepSeek', desc: '高效模型，价格极具竞争力', popular: true },
+    { name: 'DeepSeek R1', provider: 'DeepSeek', desc: '增强推理模型，适合复杂问题解决', popular: false },
+    { name: 'GLM-4 9B', provider: '智谱 AI', desc: '智谱最新模型，多语言能力强', popular: true },
+    { name: 'InternLM 2.5 20B', provider: '书生', desc: '开源模型，适合高吞吐场景', popular: false },
+    { name: 'Yi 1.5 34B', provider: '零一万物', desc: '高质量中英文理解能力', popular: false },
+    { name: 'Baichuan 2 13B', provider: '百川智能', desc: '轻量级模型，成本低', popular: false },
+  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -22,24 +49,25 @@ export default function HomePage() {
             </div>
 
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Features</a>
-              <a href="#models" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Models</a>
-              <a href="#pricing" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Pricing</a>
-              <a href="#docs" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Docs</a>
+              <a href="#features" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">{tr('nav', 'home')}</a>
+              <a href="#models" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">{tr('home', 'models', 'title')}</a>
+              <a href="#pricing" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">{tr('home', 'pricing', 'title')}</a>
+              <a href="#docs" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">{tr('nav', 'docs')}</a>
             </div>
 
             <div className="hidden md:flex items-center gap-4">
+              <LanguageSwitcher />
               <Link
                 href="/login"
                 className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
               >
-                Sign In
+                {tr('nav', 'login')}
               </Link>
               <Link
                 href="/register"
                 className="text-sm font-medium px-4 py-2 gradient-bg text-white rounded-lg hover:opacity-90 transition-opacity"
               >
-                Get Started
+                {tr('nav', 'register')}
               </Link>
             </div>
 
@@ -59,13 +87,16 @@ export default function HomePage() {
           {mobileMenuOpen && (
             <div className="md:hidden py-4 border-t border-gray-100">
               <div className="flex flex-col gap-4">
-                <a href="#features" className="text-sm text-gray-600 hover:text-gray-900">Features</a>
-                <a href="#models" className="text-sm text-gray-600 hover:text-gray-900">Models</a>
-                <a href="#pricing" className="text-sm text-gray-600 hover:text-gray-900">Pricing</a>
-                <a href="#docs" className="text-sm text-gray-600 hover:text-gray-900">Docs</a>
-                <div className="flex gap-3 pt-2">
-                  <Link href="/login" className="flex-1 text-center text-sm font-medium px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">Sign In</Link>
-                  <Link href="/register" className="flex-1 text-center text-sm font-medium px-4 py-2 gradient-bg text-white rounded-lg">Get Started</Link>
+                <a href="#features" className="text-sm text-gray-600 hover:text-gray-900">{tr('nav', 'home')}</a>
+                <a href="#models" className="text-sm text-gray-600 hover:text-gray-900">{tr('home', 'models', 'title')}</a>
+                <a href="#pricing" className="text-sm text-gray-600 hover:text-gray-900">{tr('home', 'pricing', 'title')}</a>
+                <a href="#docs" className="text-sm text-gray-600 hover:text-gray-900">{tr('nav', 'docs')}</a>
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <LanguageSwitcher />
+                  <div className="flex gap-3">
+                    <Link href="/login" className="text-sm font-medium px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">{tr('nav', 'login')}</Link>
+                    <Link href="/register" className="text-sm font-medium px-4 py-2 gradient-bg text-white rounded-lg">{tr('nav', 'register')}</Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -82,13 +113,21 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-gray-900 mb-6 animate-fade-in">
-            Unified API for
-            <span className="gradient-text block mt-2">Chinese LLMs</span>
+            {locale === 'zh' ? (
+              <>
+                一个 API 接入
+                <span className="gradient-text block mt-2">所有中国大模型</span>
+              </>
+            ) : (
+              <>
+                Unified API for
+                <span className="gradient-text block mt-2">Chinese LLMs</span>
+              </>
+            )}
           </h1>
 
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-10 animate-fade-in-delay-1">
-            Access ERNIE Bot, Tongyi Qianwen, Spark Desk, DeepSeek and more through a single,
-            OpenAI-compatible API. No Chinese payment methods or phone numbers required.
+            {tr('home', 'hero', 'subtitle')}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-delay-2">
@@ -96,13 +135,13 @@ export default function HomePage() {
               href="/register"
               className="px-8 py-4 gradient-bg text-white font-semibold rounded-xl text-lg hover:opacity-90 transition-opacity shadow-lg shadow-indigo-500/25"
             >
-              Start Building Free
+              {tr('home', 'hero', 'getStarted')}
             </Link>
             <a
               href="#docs"
               className="px-8 py-4 border border-gray-200 text-gray-700 font-semibold rounded-xl text-lg hover:bg-gray-50 transition-colors"
             >
-              View Documentation
+              {tr('home', 'hero', 'viewDocs')}
             </a>
           </div>
 
@@ -111,19 +150,19 @@ export default function HomePage() {
               <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              No Chinese phone required
+              {locale === 'zh' ? '无需中国手机号' : 'No Chinese phone required'}
             </span>
             <span className="flex items-center gap-2">
               <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Pay with Stripe/PayPal
+              {locale === 'zh' ? '支持 Stripe/PayPal' : 'Pay with Stripe/PayPal'}
             </span>
             <span className="flex items-center gap-2">
               <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              OpenAI-compatible
+              {locale === 'zh' ? '兼容 OpenAI' : 'OpenAI-compatible'}
             </span>
           </div>
         </div>
@@ -145,7 +184,7 @@ export default function HomePage() {
   -H "Authorization: Bearer sk-your-api-key" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "model": "ernie-4.0",
+    "model": "Qwen/Qwen2.5-72B-Instruct",
     "messages": [
       {"role": "user", "content": "Hello! What can you do?"}
     ]
@@ -161,18 +200,18 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Everything you need to integrate Chinese LLMs
+              {locale === 'zh' ? '集成中国大模型所需的一切' : 'Everything you need to integrate Chinese LLMs'}
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              One platform, one API key, access to all major Chinese language models.
+              {locale === 'zh' ? '一个平台，一个 API 密钥，接入所有主流中国语言模型。' : 'One platform, one API key, access to all major Chinese language models.'}
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                title: 'Unified API',
-                description: 'OpenAI-compatible endpoints for all providers. Switch between models with a single parameter change.',
+                title: locale === 'zh' ? '统一 API' : 'Unified API',
+                description: locale === 'zh' ? '所有提供商使用 OpenAI 兼容端点。只需更改一个参数即可切换模型。' : 'OpenAI-compatible endpoints for all providers. Switch between models with a single parameter change.',
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -180,8 +219,26 @@ export default function HomePage() {
                 ),
               },
               {
-                title: 'Global Payments',
-                description: 'Pay with Stripe, PayPal, or cryptocurrency. No Chinese payment methods needed.',
+                title: locale === 'zh' ? '多模型支持' : 'Multiple Models',
+                description: locale === 'zh' ? '接入通义千问、DeepSeek、GLM、书生、零一万物、百川等主流模型。' : 'Access Qwen, DeepSeek, GLM, InternLM, Yi, Baichuan and more.',
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                ),
+              },
+              {
+                title: locale === 'zh' ? '全球访问' : 'Global Access',
+                description: locale === 'zh' ? '无需中国手机号或支付方式。' : 'No Chinese phone number or payment method required.',
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ),
+              },
+              {
+                title: locale === 'zh' ? '按需付费' : 'Pay as You Go',
+                description: locale === 'zh' ? '灵活的 Token 套餐，永不过期。' : 'Flexible token packages with no expiration date.',
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -189,17 +246,8 @@ export default function HomePage() {
                 ),
               },
               {
-                title: 'Real-time Usage',
-                description: 'Monitor your token consumption, response times, and costs in real-time through the dashboard.',
-                icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                ),
-              },
-              {
-                title: 'Streaming Support',
-                description: 'Full SSE streaming support for real-time token-by-token responses from all providers.',
+                title: locale === 'zh' ? '流式支持' : 'Streaming Support',
+                description: locale === 'zh' ? '完整 SSE 流式支持，实时逐 token 返回。' : 'Full SSE streaming support for real-time token-by-token responses.',
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -207,17 +255,8 @@ export default function HomePage() {
                 ),
               },
               {
-                title: 'API Key Management',
-                description: 'Create multiple API keys with different permissions. Rotate and revoke keys instantly.',
-                icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                  </svg>
-                ),
-              },
-              {
-                title: '99.9% Uptime',
-                description: 'Global edge deployment on Cloudflare. Automatic failover and intelligent routing.',
+                title: locale === 'zh' ? '99.9% 可用性' : '99.9% Uptime',
+                description: locale === 'zh' ? 'Cloudflare 全球边缘部署。自动故障转移和智能路由。' : 'Global edge deployment on Cloudflare. Automatic failover and intelligent routing.',
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -241,29 +280,21 @@ export default function HomePage() {
       <section id="models" className="py-24 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Supported Models</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{tr('home', 'models', 'title')}</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Access the latest and most powerful Chinese language models through a single API.
+              {tr('home', 'models', 'subtitle')}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { name: 'ERNIE 4.0', provider: 'Baidu', desc: 'Baidu\'s most advanced model with superior reasoning and generation capabilities.', popular: true },
-              { name: 'ERNIE 3.5', provider: 'Baidu', desc: 'Cost-effective model balancing performance and efficiency.', popular: false },
-              { name: 'Qwen Max', provider: 'Alibaba', desc: 'Alibaba\'s flagship model excelling in complex reasoning tasks.', popular: true },
-              { name: 'Qwen Plus', provider: 'Alibaba', desc: 'Balanced model for general-purpose applications.', popular: false },
-              { name: 'Qwen Turbo', provider: 'Alibaba', desc: 'Fast and lightweight model for high-throughput scenarios.', popular: false },
-              { name: 'Spark 4.0', provider: 'iFlytek', desc: 'iFlytek\'s latest model with strong multilingual capabilities.', popular: true },
-              { name: 'Spark 3.0', provider: 'iFlytek', desc: 'Reliable model for everyday conversational AI tasks.', popular: false },
-              { name: 'DeepSeek Chat', provider: 'DeepSeek', desc: 'Highly efficient model with competitive pricing.', popular: true },
-              { name: 'DeepSeek Reasoner', provider: 'DeepSeek', desc: 'Enhanced reasoning model for complex problem-solving.', popular: false },
-            ].map((model, i) => (
+            {models.map((model, i) => (
               <div key={i} className={`p-6 rounded-xl border ${model.popular ? 'border-indigo-200 bg-white shadow-md' : 'border-gray-100 bg-white'} hover:shadow-lg transition-shadow`}>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-gray-900">{model.name}</h3>
                   {model.popular && (
-                    <span className="text-xs font-medium px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Popular</span>
+                    <span className="text-xs font-medium px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">
+                      {locale === 'zh' ? '热门' : 'Popular'}
+                    </span>
                   )}
                 </div>
                 <p className="text-sm text-gray-500 mb-2">{model.provider}</p>
@@ -278,9 +309,9 @@ export default function HomePage() {
       <section id="pricing" className="py-24 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{tr('home', 'pricing', 'title')}</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Pay only for what you use. No hidden fees, no minimum commitments.
+              {tr('home', 'pricing', 'subtitle')}
             </p>
           </div>
 
@@ -301,15 +332,15 @@ export default function HomePage() {
                 } hover:shadow-xl transition-all`}
               >
                 {pkg.popular && (
-                  <div className="text-xs font-semibold text-indigo-700 mb-2">BEST VALUE</div>
+                  <div className="text-xs font-semibold text-indigo-700 mb-2">{tr('home', 'pricing', 'popular')}</div>
                 )}
                 <h3 className="text-lg font-bold text-gray-900">{pkg.name}</h3>
                 <div className="mt-4 mb-2">
                   <span className="text-4xl font-bold text-gray-900">${pkg.price}</span>
                 </div>
-                <p className="text-sm text-gray-600 mb-1">{pkg.tokens} tokens</p>
+                <p className="text-sm text-gray-600 mb-1">{pkg.tokens} {tr('billing', 'tokens')}</p>
                 {pkg.bonus > 0 && (
-                  <p className="text-xs text-green-600 font-medium">+{pkg.bonus} bonus</p>
+                  <p className="text-xs text-green-600 font-medium">+{pkg.bonus.toLocaleString()} {tr('home', 'pricing', 'bonus')}</p>
                 )}
                 <Link
                   href="/register"
@@ -319,7 +350,7 @@ export default function HomePage() {
                       : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
                   } transition-all`}
                 >
-                  Get Started
+                  {tr('home', 'pricing', 'buyNow')}
                 </Link>
               </div>
             ))}
@@ -331,16 +362,16 @@ export default function HomePage() {
       <section className="py-24 px-4 gradient-bg">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Ready to integrate Chinese LLMs?
+            {tr('home', 'cta', 'title')}
           </h2>
           <p className="text-xl text-indigo-100 mb-10 max-w-2xl mx-auto">
-            Get started in minutes. No Chinese payment methods, no phone verification, no hassle.
+            {tr('home', 'cta', 'subtitle')}
           </p>
           <Link
             href="/register"
             className="inline-flex px-8 py-4 bg-white text-indigo-700 font-semibold rounded-xl text-lg hover:bg-indigo-50 transition-colors shadow-xl"
           >
-            Create Your Free Account
+            {tr('home', 'cta', 'button')}
           </Link>
         </div>
       </section>
@@ -358,10 +389,10 @@ export default function HomePage() {
               <span className="text-sm font-semibold text-gray-900">API Relay Hub</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500">
-              <a href="#" className="hover:text-gray-700">Terms</a>
-              <a href="#" className="hover:text-gray-700">Privacy</a>
-              <a href="#" className="hover:text-gray-700">Status</a>
-              <a href="#" className="hover:text-gray-700">Contact</a>
+              <a href="#" className="hover:text-gray-700">{locale === 'zh' ? '条款' : 'Terms'}</a>
+              <a href="#" className="hover:text-gray-700">{locale === 'zh' ? '隐私' : 'Privacy'}</a>
+              <a href="#" className="hover:text-gray-700">{locale === 'zh' ? '状态' : 'Status'}</a>
+              <a href="#" className="hover:text-gray-700">{locale === 'zh' ? '联系' : 'Contact'}</a>
             </div>
             <p className="text-sm text-gray-400">© 2026 API Relay Hub. All rights reserved.</p>
           </div>
