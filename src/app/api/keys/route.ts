@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     id: apiKeys.id,
     keyPreview: apiKeys.keyPreview,
     name: apiKeys.name,
+    permissions: apiKeys.permissions,
     isActive: apiKeys.isActive,
     lastUsedAt: apiKeys.lastUsedAt,
     createdAt: apiKeys.createdAt,
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
     keyPreview: preview,
     keyHash: hash,
     name: validation.data.name || null,
+    permissions: validation.data.permissions || 'chat:read,chat:write',
   }).run();
 
   return NextResponse.json({ key, preview, name: validation.data.name });

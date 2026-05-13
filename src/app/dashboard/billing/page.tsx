@@ -13,11 +13,27 @@ interface Payment {
   createdAt: string;
 }
 
+interface AutoRechargeSettings {
+  isEnabled: boolean;
+  thresholdBalance: number;
+  rechargeAmount: number;
+  packageId: string;
+  lastRechargedAt: string | null;
+}
+
 export default function BillingPage() {
   const [locale, setLocale] = useState<Locale>('en');
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [autoRecharge, setAutoRecharge] = useState<AutoRechargeSettings>({
+    isEnabled: false,
+    thresholdBalance: 10000,
+    rechargeAmount: 100000,
+    packageId: 'basic',
+    lastRechargedAt: null,
+  });
+  const [savingAutoRecharge, setSavingAutoRecharge] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('locale') as Locale;
@@ -31,6 +47,7 @@ export default function BillingPage() {
 
   useEffect(() => {
     fetchHistory();
+    fetchAutoRechargeSettings();
   }, []);
 
   async function fetchHistory() {
@@ -45,6 +62,37 @@ export default function BillingPage() {
       setPayments(data.history);
     }
     setLoading(false);
+  }
+
+  async function fetchAutoRechargeSettings() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    const res = await fetch('/api/auto-recharge', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const data = await res.json() as AutoRechargeSettings;
+      setAutoRecharge(data);
+    }
+  }
+
+  async function saveAutoRechargeSettings() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    setSavingAutoRecharge(true);
+    try {
+      await fetch('/api/auto-recharge', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(autoRecharge),
+      });
+    } catch (error) {
+      console.error('Save auto-recharge error:', error);
+    } finally {
+      setSavingAutoRecharge(false);
+    }
   }
 
   async function handlePurchase(packageId: string) {
@@ -175,6 +223,79 @@ export default function BillingPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{tr('billing', 'autoRecharge', 'title')}</h2>
+            <p className="text-sm text-gray-600 mt-1">{tr('billing', 'autoRecharge', 'subtitle')}</p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoRecharge.isEnabled}
+              onChange={e => {
+                setAutoRecharge(prev => ({ ...prev, isEnabled: e.target.checked }));
+                setTimeout(saveAutoRechargeSettings, 0);
+              }}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+
+        {autoRecharge.isEnabled && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{tr('billing', 'autoRecharge', 'threshold')}</label>
+                <input
+                  type="number"
+                  value={autoRecharge.thresholdBalance}
+                  onChange={e => setAutoRecharge(prev => ({ ...prev, thresholdBalance: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{tr('billing', 'autoRecharge', 'amount')}</label>
+                <input
+                  type="number"
+                  value={autoRecharge.rechargeAmount}
+                  onChange={e => setAutoRecharge(prev => ({ ...prev, rechargeAmount: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{tr('billing', 'autoRecharge', 'package')}</label>
+              <select
+                value={autoRecharge.packageId}
+                onChange={e => setAutoRecharge(prev => ({ ...prev, packageId: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
+              >
+                {packages.map(pkg => (
+                  <option key={pkg.id} value={pkg.id}>{pkg.name} - ${pkg.price} ({pkg.tokens})</option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={saveAutoRechargeSettings}
+              disabled={savingAutoRecharge}
+              className="px-6 py-2.5 gradient-bg text-white font-medium rounded-xl hover:opacity-90 transition-opacity text-sm disabled:opacity-50"
+            >
+              {savingAutoRecharge ? tr('common', 'saving') : tr('common', 'save')}
+            </button>
+
+            {autoRecharge.lastRechargedAt && (
+              <p className="text-xs text-gray-500">
+                {tr('billing', 'autoRecharge', 'lastRecharge')}: {new Date(autoRecharge.lastRechargedAt).toLocaleString()}
+              </p>
+            )}
           </div>
         )}
       </div>

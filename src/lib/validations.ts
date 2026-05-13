@@ -13,6 +13,7 @@ export const loginSchema = z.object({
 
 export const createApiKeySchema = z.object({
   name: z.string().min(1).max(100).optional(),
+  permissions: z.string().optional(),
 });
 
 export const chatCompletionSchema = z.object({

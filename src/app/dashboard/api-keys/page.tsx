@@ -7,6 +7,7 @@ interface ApiKey {
   id: string;
   keyPreview: string;
   name: string | null;
+  permissions: string;
   isActive: number;
   lastUsedAt: string | null;
   createdAt: string;
@@ -19,6 +20,14 @@ export default function ApiKeysPage() {
   const [keyName, setKeyName] = useState('');
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>(['chat:read', 'chat:write']);
+
+  const availablePermissions = [
+    { id: 'chat:read', label: 'Chat Read' },
+    { id: 'chat:write', label: 'Chat Write' },
+    { id: 'models:read', label: 'Models Read' },
+    { id: 'usage:read', label: 'Usage Read' },
+  ];
 
   useEffect(() => {
     const saved = localStorage.getItem('locale') as Locale;
@@ -55,7 +64,7 @@ export default function ApiKeysPage() {
     const res = await fetch('/api/keys', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: keyName || undefined }),
+      body: JSON.stringify({ name: keyName || undefined, permissions: selectedPermissions.join(',') }),
     });
 
     if (res.ok) {
@@ -83,6 +92,12 @@ export default function ApiKeysPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  function togglePermission(perm: string) {
+    setSelectedPermissions(prev =>
+      prev.includes(perm) ? prev.filter(p => p !== perm) : [...prev, perm]
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -92,17 +107,37 @@ export default function ApiKeysPage() {
 
       <div className="bg-white rounded-xl border border-gray-100 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">{tr('apiKeys', 'createKey')}</h2>
-        <div className="flex gap-3">
+        <div className="space-y-4">
           <input
             type="text"
             value={keyName}
             onChange={e => setKeyName(e.target.value)}
             placeholder={tr('apiKeys', 'name')}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
           />
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{tr('apiKeys', 'permissions')}</label>
+            <div className="flex flex-wrap gap-2">
+              {availablePermissions.map(perm => (
+                <button
+                  key={perm.id}
+                  onClick={() => togglePermission(perm.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    selectedPermissions.includes(perm.id)
+                      ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                      : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  {perm.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button
             onClick={createKey}
-            className="px-6 py-2.5 gradient-bg text-white font-medium rounded-xl hover:opacity-90 transition-opacity text-sm"
+            className="w-full px-6 py-2.5 gradient-bg text-white font-medium rounded-xl hover:opacity-90 transition-opacity text-sm"
           >
             {tr('apiKeys', 'createKey')}
           </button>
@@ -158,7 +193,12 @@ export default function ApiKeysPage() {
                       {key.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <div className="flex items-center gap-2 mt-1">
+                    {key.permissions?.split(',').map(perm => (
+                      <span key={perm} className="text-xs text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded">{perm}</span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
                     {tr('apiKeys', 'created')} {new Date(key.createdAt).toLocaleDateString()}
                     {key.lastUsedAt && ` · ${tr('apiKeys', 'lastUsed')} ${new Date(key.lastUsedAt).toLocaleDateString()}`}
                   </p>

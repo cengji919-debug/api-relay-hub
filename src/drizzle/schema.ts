@@ -18,6 +18,7 @@ export const apiKeys = sqliteTable('api_keys', {
   keyPreview: text('key_preview').notNull(),
   keyHash: text('key_hash').notNull(),
   name: text('name'),
+  permissions: text('permissions').default('chat:read,chat:write').notNull(),
   isActive: integer('is_active').default(1).notNull(),
   lastUsedAt: text('last_used_at'),
   createdAt: text('created_at').default(sql`(datetime('now'))`).notNull(),
@@ -103,4 +104,16 @@ export const apiUsageLogs = sqliteTable('api_usage_logs', {
   responseTimeMs: integer('response_time_ms'),
   statusCode: integer('status_code'),
   createdAt: text('created_at').default(sql`(datetime('now'))`).notNull(),
+});
+
+export const autoRechargeSettings = sqliteTable('auto_recharge_settings', {
+  id: text('id').primaryKey().default(sql`(lower(hex(randomblob(16))))`),
+  userId: text('user_id').unique().notNull().references(() => users.id),
+  isEnabled: integer('is_enabled').default(0).notNull(),
+  thresholdBalance: integer('threshold_balance').default(10000).notNull(),
+  rechargeAmount: integer('recharge_amount').default(100000).notNull(),
+  packageId: text('package_id').default('basic').notNull(),
+  lastRechargedAt: text('last_recharged_at'),
+  createdAt: text('created_at').default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text('updated_at').default(sql`(datetime('now'))`).notNull(),
 });

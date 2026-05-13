@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDB } from '@/lib/db';
-import { platformPricing, apiProviders } from '../../../drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { getAllPricing, getPricingForModel } from '@/lib/pricing';
 
 export const runtime = 'edge';
 
-export async function GET() {
-  const db = getDB(process.env.DB as unknown as D1Database);
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const modelId = searchParams.get('model');
 
-  const pricing = await db.select({
-    providerId: platformPricing.providerId,
-    providerName: apiProviders.displayName,
-    modelName: platformPricing.modelName,
-    pricePerToken: platformPricing.pricePerToken,
-    profitMargin: platformPricing.profitMargin,
-  }).from(platformPricing)
-    .leftJoin(apiProviders, eq(platformPricing.providerId, apiProviders.id))
-    .where(eq(platformPricing.isActive, 1))
-    .all();
+    if (modelId) {
+      const pricing = getPricingForModel(modelId);
+      if (!pricing) {
+        return NextResponse.json({ error: 'Model not found' }, { status: 404 });
+      }
+      return NextResponse.json(pricing);
+    }
 
-  return NextResponse.json({ pricing });
+    const allPricing = getAllPricing();
+    return NextResponse.json({ pricing: allPricing });
+  } catch (error) {
+    console.error('Pricing API error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
